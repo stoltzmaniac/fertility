@@ -1,0 +1,80 @@
+---
+title: "Fertility"
+author: "Scott Stoltzman"
+date: "10/1/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library('tidyverse')
+library('ggthemes')
+```
+
+## Looking at Fertility
+
+Fertility is a topic people don't discuss openly in the US. It's an incredibly personal topic and when trying to research it online things aren't always very clear. Trying to answer questions like:  
+
+  - What are the odds of conceiving each month?
+  - How long should people try without worrying?
+  - How much of a factor does age play?
+
+I need to start this off by saying, I am not a doctor (nor do I play one on TV). In fact, I'm just going to start my look into this topic by first reading some blogs on the topic. This isn't typically a great option, but then again, I'm writing a blog as well. What could go wrong, a blog based off of other blogs which might be discussed in another blog? I digress...
+
+According to a post on [Today's Parent](https://www.todaysparent.com/getting-pregnant/trying-to-conceive/what-are-your-odds-of-getting-pregnant-each-month/) by Alex Mlynek, an OB-GYN doctor stated that your chances of conceiving each cycle are:  
+
+  - 25% to 30% if you're under 35 years old
+  - 15% if you're 35 to 39
+  - 5% if you're 40 to 42
+  - 2% at 43
+
+The doctor also stated that age has an effect on miscarriage rates:  
+
+  - Increases from 10% for people in their 20s to 15% after age 35
+  - Increases up to 50% by age 45
+
+The article cites a 2003 study in the journal *Human Reproduction* of 346 women ages 20 to 44 who tracked ovulation cycles and timed intercourse that improved chances of conception:  
+
+  - It led to a 38% chance of conception within one cycle
+  - 68% within three cycles
+  - 81% within six cycles
+  - 92% chance within twelve cycles
+  
+Multiple articles (including the one above) indicate 85% of women will get pregnant within one year of trying and "if you have been trying for a year without conceiving and are under 35, she suggests that you seek a fertility consultation. If you’re 35 or older, you should seek help after just six months of trying because egg quality declines and medical conditions become more prevalent as we age, so the likelihood that you may need some fertility help is higher."
+
+As with almost everything in life, these numbers aren't perfect and many factors affect the chances of getting pregnant. However, there seems to be a consensus that age is a major factor, so we'll focus on that first.
+
+
+```{r conception_by_cycle_with_ovulation_tracking}
+cycles = tibble(
+  cycle = factor(c('One', 'Three', 'Six', 'Twelve')),
+  average = c(0.38, 0.68, 0.81, 0.92))
+p = ggplot(cycles, aes(x = cycle, y = average))
+p + geom_point(size = 3) + 
+  geom_text(aes(label = scales::percent(average)), nudge_x = 0.15) + 
+  ggtitle('Chance of Conception by Cycle') + 
+  xlab('Cycle') + 
+  ylab('') + 
+  scale_y_continuous(labels = scales::percent, limits = c(0, 1)) + 
+  ggthemes::theme_economist()
+```
+
+
+
+```{r single_cycle_chance_of_conception_by_age}
+single_cycle = tibble(
+  age = factor(c("< 35", "< 35", "35 - 39", "40 - 42", "43")),
+  average = c(0.25, 0.30, 0.15, 0.05, 0.02))
+
+p = ggplot(single_cycle, aes(x = age, y = average)) 
+p + geom_point(size = 3) + 
+  geom_text(aes(label = scales::percent(average)), nudge_x = 0.15) + 
+  geom_line() + 
+  ggtitle('Single-Cycle Chance of Conception by Age') + 
+  xlab('Age') +
+  ylab('') +
+  scale_y_continuous(labels = scales::percent, limits = c(0, 0.4)) + 
+  ggthemes::theme_economist()
+```
+
