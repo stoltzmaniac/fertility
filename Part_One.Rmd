@@ -131,14 +131,14 @@ for(i in age){
     age_predictions = age_predictions %>%
       mutate(!!i := predicted_average * (1 + single_cycle$age_effect[single_cycle$age == i]))
 }
-age_predictions = age_predictions %>%
-  select(-predicted_average) %>%
-  gather(age, predicted_average, -cycle)
 
-age_predictions
+age_predictions %>% select(-predicted_average)
 ```
 
 ```{r cycle_extrapolation_plot}
+age_predictions = age_predictions %>%
+  select(-predicted_average) %>%
+  gather(age, predicted_average, -cycle)
 p = ggplot(age_predictions, aes(x = cycle, y = predicted_average, col = age))
 p + geom_line() + 
   ggtitle('Multiple-Cycle Chance of Conception by Age') + 
