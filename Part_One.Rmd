@@ -48,7 +48,7 @@ As with almost everything in life, these numbers aren't perfect and many factors
 
 ```{r conception_by_cycle_with_ovulation_tracking}
 cycles = tibble(
-  cycle = factor(c('One', 'Three', 'Six', 'Twelve')),
+  cycle = factor(c('One', 'Three', 'Six', 'Twelve'), levels = c('One', 'Three', 'Six', 'Twelve')),
   average = c(0.38, 0.68, 0.81, 0.92))
 p = ggplot(cycles, aes(x = cycle, y = average))
 p + geom_point(size = 3) + 
@@ -62,9 +62,41 @@ p + geom_point(size = 3) +
 
 
 
+```{r conception_loess_model, warning=FALSE}
+cycle = c(1, 3, 6, 12)
+avg = c(0.38, 0.68, 0.81, 0.92)
+lo = loess(avg ~ cycle)
+lo12 = predict(lo, 1:12)
+cycles_predicted = tibble(
+  cycle = 1:12,
+  predicted_average = lo12
+)
+cycles_predicted
+```
+
+
+```{r conception_loess_plot, warning=FALSE}
+cycles = tibble(
+  cycle = 1:12,
+  average = c(0.38, NA, 0.68, NA, NA, 0.81, NA, NA, NA, NA, NA, 0.92))
+
+p = ggplot(cycles, aes(x = cycle, y = average))
+p + geom_point(size = 3) + 
+  ggtitle('Chance of Conception by Cycle') + 
+  xlab('Cycle') + 
+  ylab('') + 
+  scale_x_continuous(limits = c(0,12), breaks = 1:12) + 
+  scale_y_continuous(labels = scales::percent, limits = c(0, 1)) + 
+  geom_smooth(method='loess') + 
+  ggthemes::theme_economist()
+```
+
+
+
+
 ```{r single_cycle_chance_of_conception_by_age}
 single_cycle = tibble(
-  age = factor(c("< 35", "< 35", "35 - 39", "40 - 42", "43")),
+  age = factor(c("< 35", "< 35", "35 - 39", "40 - 42", "43"), levels = c("< 35", "35 - 39", "40 - 42", "43")),
   average = c(0.25, 0.30, 0.15, 0.05, 0.02))
 
 p = ggplot(single_cycle, aes(x = age, y = average)) 
@@ -75,6 +107,45 @@ p + geom_point(size = 3) +
   xlab('Age') +
   ylab('') +
   scale_y_continuous(labels = scales::percent, limits = c(0, 0.4)) + 
+  ggthemes::theme_economist()
+```
+
+```{r single_cycle_vs_benchmark}
+#using .275 for simplicity
+age = factor(c("< 35", "35 - 39", "40 - 42", "43"), levels = c("< 35", "35 - 39", "40 - 42", "43"))
+benchmark = 0.275
+avg_by_age = c(0.275, 0.15, 0.05, 0.02)
+
+single_cycle = tibble(
+  age = age,
+  average_by_age = avg_by_age) %>%
+  mutate(age_effect = (average_by_age - benchmark) / benchmark)
+
+single_cycle
+```
+
+
+```{r cycle_extrapolation_data}
+age_predictions = cycles_predicted
+for(i in age){
+    age_predictions = age_predictions %>%
+      mutate(!!i := predicted_average * (1 + single_cycle$age_effect[single_cycle$age == i]))
+}
+age_predictions = age_predictions %>%
+  select(-predicted_average) %>%
+  gather(age, predicted_average, -cycle)
+
+age_predictions
+```
+
+```{r cycle_extrapolation_plot}
+p = ggplot(age_predictions, aes(x = cycle, y = predicted_average, col = age))
+p + geom_line() + 
+  ggtitle('Multiple-Cycle Chance of Conception by Age') + 
+  xlab('Cycle') +
+  ylab('') +
+  scale_x_continuous(limits = c(0,12), breaks = 1:12) + 
+  scale_y_continuous(labels = scales::percent, limits = c(0, 1)) + 
   ggthemes::theme_economist()
 ```
 
