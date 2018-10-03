@@ -5,9 +5,10 @@ date: "10/1/2018"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
+```{r setup, include=FALSE, warning=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
+library('plotly')
 library('tidyverse')
 library('ggthemes')
 ```
@@ -46,7 +47,7 @@ Multiple articles (including the one above) indicate 85% of women will get pregn
 As with almost everything in life, these numbers aren't perfect and many factors affect the chances of getting pregnant. However, there seems to be a consensus that age is a major factor, so we'll focus on that first.
 
 
-```{r conception_by_cycle_with_ovulation_tracking}
+```{r conception_by_cycle_with_ovulation_tracking, fig.align='center'}
 cycles = tibble(
   cycle = factor(c('One', 'Three', 'Six', 'Twelve'), levels = c('One', 'Three', 'Six', 'Twelve')),
   average = c(0.38, 0.68, 0.81, 0.92))
@@ -75,7 +76,7 @@ cycles_predicted
 ```
 
 
-```{r conception_loess_plot, warning=FALSE}
+```{r conception_loess_plot, warning=FALSE, fig.align='center'}
 cycles = tibble(
   cycle = 1:12,
   average = c(0.38, NA, 0.68, NA, NA, 0.81, NA, NA, NA, NA, NA, 0.92))
@@ -94,7 +95,7 @@ p + geom_point(size = 3) +
 
 
 
-```{r single_cycle_chance_of_conception_by_age}
+```{r single_cycle_chance_of_conception_by_age, fig.align='center'}
 single_cycle = tibble(
   age = factor(c("< 35", "< 35", "35 - 39", "40 - 42", "43"), levels = c("< 35", "35 - 39", "40 - 42", "43")),
   average = c(0.25, 0.30, 0.15, 0.05, 0.02))
@@ -135,12 +136,12 @@ for(i in age){
 age_predictions %>% select(-predicted_average)
 ```
 
-```{r cycle_extrapolation_plot}
-age_predictions = age_predictions %>%
+```{r cycle_extrapolation_plot, fig.align='center'}
+age_prediction_plot = age_predictions %>%
   select(-predicted_average) %>%
   gather(age, predicted_average, -cycle)
-p = ggplot(age_predictions, aes(x = cycle, y = predicted_average, col = age))
-p + geom_line() + 
+p = ggplot(age_prediction_plot, aes(x = cycle, y = predicted_average, col = age))
+p + geom_line(size = 1.5) + 
   ggtitle('Multiple-Cycle Chance of Conception by Age') + 
   xlab('Cycle') +
   ylab('') +
